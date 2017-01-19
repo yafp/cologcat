@@ -1,2 +1,2 @@
-# cologcat
+# CoLogCat
 Colorizing logcat output
