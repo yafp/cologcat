@@ -1,0 +1,2 @@
+# cologcat
+Colorizing logout output
