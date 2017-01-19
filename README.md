@@ -1,2 +1,2 @@
 # cologcat
-Colorizing logout output
+Colorizing logcat output
