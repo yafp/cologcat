@@ -1,5 +1,5 @@
 # CoLogCat
-Colorizing logcat output
+Colorized logcat output
 
 
 ## Requirements
