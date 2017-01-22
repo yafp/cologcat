@@ -32,7 +32,7 @@ ADB_LOGCAT_COMMAND="adb logcat"
 # ----------------------------------------------------------------------------------------------------------------------------
 readonly PROJECT_NAME="CoLogCat"
 readonly PROJECT_URL="https://github.com/yafp/cologcat"
-readonly PROJECT_VERSION="20170120.01"
+readonly PROJECT_VERSION="20170122.01"
 
 
 
@@ -158,13 +158,13 @@ function setLogCatLevel() {
     
      if hash whiptail 2>/dev/null; then # check for whiptail
             OPTION=$(whiptail --title "Set LogCat Level" --backtitle "$PROJECT_NAME" --ok-button "Choose" --cancel-button "Exit (ESC)" --menu "Configure LogCat level" 16 70 8 \
+        "[S]" "Silent" \
         "[V]" "Verbose" \
         "[D]" "Debug" \
         "[I]" "Info" \
         "[W]" "Warning" \
         "[E]" "Error" \
-        "[F]" "Fatal" \
-        "[S]" "Silent"  3>&1 1>&2 2>&3)
+        "[F]" "Fatal" 3>&1 1>&2 2>&3)
          
         EXITSTATUS=$?
         if [ $EXITSTATUS = 0 ]; then
@@ -195,6 +195,7 @@ function setLogCatLevel() {
             printf "${FG_RED}[  FAIL  ]${NORMAL}\tAborting\n\n"
             exit
         fi
+        startADBLogcat
      fi
 }
 
@@ -210,6 +211,9 @@ function checkParameters() {
             printf "${FG_GREEN}[   OK   ]${NORMAL}\tRequesting help\n"
             displayHelp
             ;;
+         "-f" | "--filter")
+            setLogCatLevel
+            ;;
         *)
             printf "${FG_RED}[  FAIL  ]${NORMAL}\tUnsupported parameter '$primaryParameter'\n\n"
             ;;
@@ -222,10 +226,14 @@ function checkParameters() {
 # DISPLAY HELP INFORMATIONS
 # ----------------------------------------------------------------------------------------------------------------------------
 function displayHelp() {
-    printf "\n$PROJECT_NAME help\n"
+    initTerm
+    printf "\n$PROJECT_NAME help\n\n"
     printf "  Name:\t\t$PROJECT_NAME\n"
     printf "  Version:\t$PROJECT_VERSION\n"
     printf "  URL:\t\t$PROJECT_URL\n\n"
+    printf "Parameter:\n"
+    printf "\t-f\tset filter\n"
+    printf "\t-h\tshow help\n"
 }
 
 
@@ -342,7 +350,6 @@ function startADBLogcat() {
 initTerm
 initColors
 checkRequirements
-setLogCatLevel
 
 if [ $# -eq 0 ]; then # if no parameter was supplied
     startADBLogcat
