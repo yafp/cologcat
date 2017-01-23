@@ -22,7 +22,6 @@
 # ----------------------------------------------------------------------------------------------------------------------------
 # adb logcat *:F                              Show only log entries of type FATAL
 # adb logcat | grep 123                       Show only log entries for PID 123
-#
 ADB_LOGCAT_COMMAND="adb logcat"
 
 
@@ -32,7 +31,7 @@ ADB_LOGCAT_COMMAND="adb logcat"
 # ----------------------------------------------------------------------------------------------------------------------------
 readonly PROJECT_NAME="CoLogCat"
 readonly PROJECT_URL="https://github.com/yafp/cologcat"
-readonly PROJECT_VERSION="20170122.01"
+readonly PROJECT_VERSION="20170123.01"
 
 
 
@@ -68,7 +67,6 @@ function initColors() {
     UNDERLINE=$(tput smul)      # Start UNDERLINEd text
     ENDUNDERLINE=$(tput rmul)   # End UNDERLINEd text
 
-    
     # http://unix.stackexchange.com/questions/269077/tput-setaf-color-table-how-to-determine-color-codes
     #
     # Color     #define         Value   RGB
@@ -134,17 +132,17 @@ function checkRequirements() {
     
     # adb (required)
     if hash adb 2>/dev/null; then
-            printf "${FG_GREEN}[   OK   ]${NORMAL}\tFound ADB\n"
+            printf " ${FG_GREEN}[   OK   ]${NORMAL}\tFound ADB\n"
         else
-            printf "${FG_RED}[  FAIL  ]${NORMAL}\tADB is missing\n"
+            printf " ${FG_RED}[  FAIL  ]${NORMAL}\tADB is missing\n"
             exit 1
     fi
     
     # whiptail (optional)
     if hash whiptail 2>/dev/null; then # check for whiptail
-        printf "${FG_GREEN}[   OK   ]${NORMAL}\tFound whiptail\n\n"
+        printf " ${FG_GREEN}[   OK   ]${NORMAL}\tFound whiptail\n\n"
     else
-        printf "${FG_RED}[  FAIL  ]${NORMAL}\twhiptail is missing\n\n"
+        printf " ${FG_YELLOW}[ WARNING]${NORMAL}\tFiltering is not possible as whiptail is missing\n\n"
     fi
 }
 
@@ -191,12 +189,14 @@ function setLogCatLevel() {
                     ADB_LOGCAT_COMMAND="adb logcat *:S"
                     ;;
             esac
-        else
-            printf "${FG_RED}[  FAIL  ]${NORMAL}\tAborting\n\n"
+        else # user aborted whiptail dialog
+            printf " ${FG_RED}[  FAIL  ]${NORMAL}\tAborted by user\n\n"
             exit
         fi
         startADBLogcat
-     fi
+    else # whiptail is missing
+        printf " ${FG_RED}[  FAIL  ]${NORMAL}\tCan't show dialog as whiptail is missing\n\n"
+    fi
 }
 
 
@@ -208,14 +208,14 @@ function checkParameters() {
     printf "Checking parameters\n"
     case "$primaryParameter" in
         "-h" | "--help")
-            printf "${FG_GREEN}[   OK   ]${NORMAL}\tRequesting help\n"
+            printf " ${FG_GREEN}[   OK   ]${NORMAL}\tRequesting help\n"
             displayHelp
             ;;
          "-f" | "--filter")
             setLogCatLevel
             ;;
         *)
-            printf "${FG_RED}[  FAIL  ]${NORMAL}\tUnsupported parameter '$primaryParameter'\n\n"
+            printf " ${FG_RED}[  FAIL  ]${NORMAL}\tUnsupported parameter '$primaryParameter'\n\n"
             ;;
     esac
 }
@@ -232,8 +232,8 @@ function displayHelp() {
     printf "  Version:\t$PROJECT_VERSION\n"
     printf "  URL:\t\t$PROJECT_URL\n\n"
     printf "Parameter:\n"
-    printf "\t-f\tset filter\n"
-    printf "\t-h\tshow help\n"
+    printf "  -f /--filter\tset log-level filter\n"
+    printf "  -h / --help\tshow help\n"
 }
 
 
@@ -241,55 +241,74 @@ function displayHelp() {
 # ----------------------------------------------------------------------------------------------------------------------------
 # COLORIZE MESSAGETYPE
 # ----------------------------------------------------------------------------------------------------------------------------
-function colorizeMessageType() {
+function colorizeOutput() {
 
     case $MSG_TYPE in
         [A]*)                                       #   A = Assert
+        
             COLOR_LONG=${FG_LIME_YELLOW}
             COLOR_SHORT=${BG_LIME_YELLOW}${FG_BLACK}
             
             cMSG_TYPE_LONG="${FG_LIME_YELLOW}[  Assert ]${NORMAL}"
             cMSG_TYPE_SHORT="${BG_LIME_YELLOW}${FG_BLACK} A ${NORMAL}"
+            
+            cMSG_SOURCE="${FG_LIME_YELLOW}$MSG_SOURCE${NORMAL}"
             ;;
             
         [D]*)                                       #   D = Debug
             cMSG_TYPE_LONG="${FG_BLUE}[  Debug  ]${NORMAL}"
             cMSG_TYPE_SHORT="${BG_BLUE}${FG_BLACK} D ${NORMAL}"
+            
+            cMSG_SOURCE="${FG_BLUE}$MSG_SOURCE${NORMAL}"
             ;;
             
         [E])                                        #   E = Error
             cMSG_TYPE_LONG="${FG_RED}[  Error  ]${NORMAL}"
             cMSG_TYPE_SHORT="${BG_RED}${FG_BLACK} E ${NORMAL}"
+            
+            cMSG_SOURCE="${FG_RED}$MSG_SOURCE${NORMAL}"
             ;;
             
         [F])                                        #   F = Fatal
             cMSG_TYPE_LONG="${FG_MAGENTA}[  Fatal  ]${NORMAL}"
             cMSG_TYPE_SHORT="${BG_MAGENTA}${FG_BLACK} F ${NORMAL}"
+            
+            cMSG_SOURCE="${FG_MAGENTA}$MSG_SOURCE${NORMAL}"
             ;;
             
         [I])                                        #   I = Info
             cMSG_TYPE_LONG="${FG_GREEN}[   Info  ]${NORMAL}"
             cMSG_TYPE_SHORT="${BG_GREEN}${FG_BLACK} I ${NORMAL}"
+            
+            cMSG_SOURCE="${FG_GREEN}$MSG_SOURCE${NORMAL}"
             ;;
             
         [S])                                        #   S = Silent
             cMSG_TYPE_LONG="${FG_POWDER_BLUE}[  Silent ]${NORMAL}"
             cMSG_TYPE_SHORT="${BG_POWDER_BLUE}${FG_BLACK} S ${NORMAL}"
+            
+            cMSG_SOURCE="${FG_POWDER_BLUE}$MSG_SOURCE${NORMAL}"
             ;;
             
         [V])                                        #   V = Verbose
             cMSG_TYPE_LONG="${FG_CYAN}[ Verbose ]${NORMAL}"
             cMSG_TYPE_SHORT="${BG_CYAN}${FG_BLACK} V ${NORMAL}"
+            
+            cMSG_SOURCE="${FG_CYAN}$MSG_SOURCE${NORMAL}"
             ;;
             
         [W])                                        #   W = Warning
             cMSG_TYPE_LONG="${FG_YELLOW}[ Warning ]${NORMAL}"
             cMSG_TYPE_SHORT="${BG_YELLOW}${FG_BLACK} W ${NORMAL}"
+            
+            cMSG_SOURCE="${FG_YELLOW}$MSG_SOURCE${NORMAL}"
             ;;
             
         *)
             cMSG_TYPE_LONG="[   $MSG_TYPE   ]"
             cMSG_TYPE_SHORT="$MSG_TYPE"
+            
+            cMSG_SOURCE="$MSG_SOURCE"
             ;;
     esac
 }
@@ -314,16 +333,17 @@ function parseLogcatOutputLine() {
     # message is difficult to handle col-wise
     MSG="${line##*$MSG_SOURCE" "}" # everything after msg_source is the actual msg
 
-    # colorize message type
-    colorizeMessageType "$MSG_TYPE"
+    # colorize some output values
+    colorizeOutput
 
     # original output of logcat
     #printf "$line\n"
     #
     # Default order or 
     #printf "$DATE $TIME $PROCESS_ID $THREAD_ID $MSG_TYPE $MSG\n"
+    #
     # coLogCat output
-    printf " $DATE $TIME $cMSG_TYPE_SHORT $PROCESS_ID\t $THREAD_ID\t$cMSG_TYPE_LONG $MSG_SOURCE $MSG\n"
+    printf " $cMSG_TYPE_LONG $DATE $TIME $cMSG_TYPE_SHORT $PROCESS_ID\t $THREAD_ID\t $cMSG_SOURCE $MSG\n"
     #printf "$DATE $TIME $PROCESS_ID $THREAD_ID $cMSG_TYPE_SHORT $MSG\n"
 }
 
