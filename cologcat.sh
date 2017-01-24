@@ -20,8 +20,6 @@
 # ----------------------------------------------------------------------------------------------------------------------------
 # CONFIG
 # ----------------------------------------------------------------------------------------------------------------------------
-# adb logcat *:F                              Show only log entries of type FATAL
-# adb logcat | grep 123                       Show only log entries for PID 123
 ADB_LOGCAT_COMMAND="adb logcat"
 
 
@@ -31,7 +29,7 @@ ADB_LOGCAT_COMMAND="adb logcat"
 # ----------------------------------------------------------------------------------------------------------------------------
 readonly PROJECT_NAME="CoLogCat"
 readonly PROJECT_URL="https://github.com/yafp/cologcat"
-readonly PROJECT_VERSION="20170123.01"
+readonly PROJECT_VERSION="20170124.01"
 
 
 
@@ -152,40 +150,40 @@ function checkRequirements() {
 #  CONFIGURE LOGCAT LEVEL
 # ----------------------------------------------------------------------------------------------------------------------------
 function setLogCatLevel() {
-    printf "Checking input filter\n"
+    printf "\nConfiguring Logcat filter level\n"
     
      if hash whiptail 2>/dev/null; then # check for whiptail
-            OPTION=$(whiptail --title "Set LogCat Level" --backtitle "$PROJECT_NAME" --ok-button "Choose" --cancel-button "Exit (ESC)" --menu "Configure LogCat level" 16 70 8 \
-        "[S]" "Silent" \
-        "[V]" "Verbose" \
+            OPTION=$(whiptail --title "Set LogCat Level" --backtitle "$PROJECT_NAME" --ok-button "Choose" --cancel-button "Exit (ESC)" --menu "Configure LogCat logging level" 16 70 8 \
+        "[V]" "Verbose (most)" \
         "[D]" "Debug" \
         "[I]" "Info" \
         "[W]" "Warning" \
         "[E]" "Error" \
-        "[F]" "Fatal" 3>&1 1>&2 2>&3)
+        "[F]" "Fatal" \
+        "[S]" "Silent (none)"  3>&1 1>&2 2>&3)
          
         EXITSTATUS=$?
         if [ $EXITSTATUS = 0 ]; then
             case $OPTION in
-                "[V]")
+                "[V]")                                      # Verbose
                     ADB_LOGCAT_COMMAND="adb logcat *:V"
                     ;;
-                "[D]") 
+                "[D]")                                      # Debug
                     ADB_LOGCAT_COMMAND="adb logcat *:D"
                     ;;
-                "[I]")
+                "[I]")                                      # Info
                     ADB_LOGCAT_COMMAND="adb logcat *:I"
                     ;;
-                "[W]") 
+                "[W]")                                      # Warning
                     ADB_LOGCAT_COMMAND="adb logcat *:W"
                     ;;
-                "[E]") 
+                "[E]")                                      # Error
                     ADB_LOGCAT_COMMAND="adb logcat *:E"
                     ;;
-                "[F]") 
+                "[F]")                                      # Fatal
                     ADB_LOGCAT_COMMAND="adb logcat *:F"
                     ;;
-                "[S]") 
+                "[S]")                                      # Silent
                     ADB_LOGCAT_COMMAND="adb logcat *:S"
                     ;;
             esac
@@ -193,31 +191,9 @@ function setLogCatLevel() {
             printf " ${FG_RED}[  FAIL  ]${NORMAL}\tAborted by user\n\n"
             exit
         fi
-        startADBLogcat
     else # whiptail is missing
         printf " ${FG_RED}[  FAIL  ]${NORMAL}\tCan't show dialog as whiptail is missing\n\n"
     fi
-}
-
-
-
-# ----------------------------------------------------------------------------------------------------------------------------
-# CHECK STARTUP PARAMETERS
-# ----------------------------------------------------------------------------------------------------------------------------
-function checkParameters() {
-    printf "Checking parameters\n"
-    case "$primaryParameter" in
-        "-h" | "--help")
-            printf " ${FG_GREEN}[   OK   ]${NORMAL}\tRequesting help\n"
-            displayHelp
-            ;;
-         "-f" | "--filter")
-            setLogCatLevel
-            ;;
-        *)
-            printf " ${FG_RED}[  FAIL  ]${NORMAL}\tUnsupported parameter '$primaryParameter'\n\n"
-            ;;
-    esac
 }
 
 
@@ -232,8 +208,9 @@ function displayHelp() {
     printf "  Version:\t$PROJECT_VERSION\n"
     printf "  URL:\t\t$PROJECT_URL\n\n"
     printf "Parameter:\n"
-    printf "  -f /--filter\tset log-level filter\n"
+    printf "  -f / --filter\tset logcat logging filter\n"
     printf "  -h / --help\tshow help\n"
+    exit
 }
 
 
@@ -245,70 +222,67 @@ function colorizeOutput() {
 
     case $MSG_TYPE in
         [A]*)                                       #   A = Assert
-        
-            COLOR_LONG=${FG_LIME_YELLOW}
-            COLOR_SHORT=${BG_LIME_YELLOW}${FG_BLACK}
-            
-            cMSG_TYPE_LONG="${FG_LIME_YELLOW}[  Assert ]${NORMAL}"
-            cMSG_TYPE_SHORT="${BG_LIME_YELLOW}${FG_BLACK} A ${NORMAL}"
-            
-            cMSG_SOURCE="${FG_LIME_YELLOW}$MSG_SOURCE${NORMAL}"
+            COLOR_FG_ONLY=${FG_LIME_YELLOW}
+            COLOR_FB_AND_BG=${BG_LIME_YELLOW}${FG_BLACK}
+            # verbose message type string
+            MSG_TYPE_VERBOSE="[  Assert ]"
             ;;
             
         [D]*)                                       #   D = Debug
-            cMSG_TYPE_LONG="${FG_BLUE}[  Debug  ]${NORMAL}"
-            cMSG_TYPE_SHORT="${BG_BLUE}${FG_BLACK} D ${NORMAL}"
-            
-            cMSG_SOURCE="${FG_BLUE}$MSG_SOURCE${NORMAL}"
+            COLOR_FG_ONLY=${FG_BLUE}
+            COLOR_FB_AND_BG=${BG_BLUE}${FG_BLACK}
+            # verbose message type string
+            MSG_TYPE_VERBOSE="[   Debug ]"
             ;;
             
         [E])                                        #   E = Error
-            cMSG_TYPE_LONG="${FG_RED}[  Error  ]${NORMAL}"
-            cMSG_TYPE_SHORT="${BG_RED}${FG_BLACK} E ${NORMAL}"
-            
-            cMSG_SOURCE="${FG_RED}$MSG_SOURCE${NORMAL}"
+            COLOR_FG_ONLY=${FG_RED}
+            COLOR_FB_AND_BG=${BG_RED}${FG_BLACK}
+            # verbose message type string
+            MSG_TYPE_VERBOSE="[   Error ]"
             ;;
             
         [F])                                        #   F = Fatal
-            cMSG_TYPE_LONG="${FG_MAGENTA}[  Fatal  ]${NORMAL}"
-            cMSG_TYPE_SHORT="${BG_MAGENTA}${FG_BLACK} F ${NORMAL}"
-            
-            cMSG_SOURCE="${FG_MAGENTA}$MSG_SOURCE${NORMAL}"
+            COLOR_FG_ONLY=${FG_MAGENTA}
+            COLOR_FB_AND_BG=${BG_MAGENTA}${FG_BLACK}
+            # verbose message type string
+            MSG_TYPE_VERBOSE="[   Fatal ]"
             ;;
             
         [I])                                        #   I = Info
-            cMSG_TYPE_LONG="${FG_GREEN}[   Info  ]${NORMAL}"
-            cMSG_TYPE_SHORT="${BG_GREEN}${FG_BLACK} I ${NORMAL}"
-            
-            cMSG_SOURCE="${FG_GREEN}$MSG_SOURCE${NORMAL}"
+            COLOR_FG_ONLY=${FG_GREEN}
+            COLOR_FB_AND_BG=${BG_GREEN}${FG_BLACK}
+            # verbose message type string
+            MSG_TYPE_VERBOSE="[    Info ]"
             ;;
             
         [S])                                        #   S = Silent
-            cMSG_TYPE_LONG="${FG_POWDER_BLUE}[  Silent ]${NORMAL}"
-            cMSG_TYPE_SHORT="${BG_POWDER_BLUE}${FG_BLACK} S ${NORMAL}"
-            
-            cMSG_SOURCE="${FG_POWDER_BLUE}$MSG_SOURCE${NORMAL}"
+            # colors
+            COLOR_FG_ONLY=${FG_POWDER_BLUE}
+            COLOR_FB_AND_BG=${BG_POWDER_BLUE}${FG_BLACK}
+            # verbose message type string
+            MSG_TYPE_VERBOSE="[  Silent ]"
             ;;
             
         [V])                                        #   V = Verbose
-            cMSG_TYPE_LONG="${FG_CYAN}[ Verbose ]${NORMAL}"
-            cMSG_TYPE_SHORT="${BG_CYAN}${FG_BLACK} V ${NORMAL}"
-            
-            cMSG_SOURCE="${FG_CYAN}$MSG_SOURCE${NORMAL}"
+            COLOR_FG_ONLY=${FG_CYAN}
+            COLOR_FB_AND_BG=${BG_CYAN}${FG_BLACK}
+            # verbose message type string
+            MSG_TYPE_VERBOSE="[ Verbose ]"
             ;;
             
         [W])                                        #   W = Warning
-            cMSG_TYPE_LONG="${FG_YELLOW}[ Warning ]${NORMAL}"
-            cMSG_TYPE_SHORT="${BG_YELLOW}${FG_BLACK} W ${NORMAL}"
-            
-            cMSG_SOURCE="${FG_YELLOW}$MSG_SOURCE${NORMAL}"
+            COLOR_FG_ONLY=${FG_YELLOW}
+            COLOR_FB_AND_BG=${BG_YELLOW}${FG_BLACK}
+            # verbose message type string
+            MSG_TYPE_VERBOSE="[ Warning ]"
             ;;
             
-        *)
-            cMSG_TYPE_LONG="[   $MSG_TYPE   ]"
-            cMSG_TYPE_SHORT="$MSG_TYPE"
-            
-            cMSG_SOURCE="$MSG_SOURCE"
+        *)                                          #   Unknown
+            COLOR_FG_ONLY=${NORMAL}
+            COLOR_FB_AND_BG=${NORMAL}
+            # verbose message type string
+            MSG_TYPE_VERBOSE="[ Unknown ]"
             ;;
     esac
 }
@@ -341,10 +315,11 @@ function parseLogcatOutputLine() {
     #
     # Default order or 
     #printf "$DATE $TIME $PROCESS_ID $THREAD_ID $MSG_TYPE $MSG\n"
-    #
+
+
     # coLogCat output
-    printf " $cMSG_TYPE_LONG $DATE $TIME $cMSG_TYPE_SHORT $PROCESS_ID\t $THREAD_ID\t $cMSG_SOURCE $MSG\n"
-    #printf "$DATE $TIME $PROCESS_ID $THREAD_ID $cMSG_TYPE_SHORT $MSG\n"
+    #printf " $cMSG_TYPE_LONG $DATE $TIME $cMSG_TYPE_SHORT $PROCESS_ID\t $THREAD_ID\t $cMSG_SOURCE $MSG\n"
+    printf " $COLOR_FG_ONLY $MSG_TYPE_VERBOSE ${NORMAL} $DATE $TIME $COLOR_FB_AND_BG $MSG_TYPE ${NORMAL} $PROCESS_ID\t $THREAD_ID\t $COLOR_FG_ONLY $MSG_SOURCE ${NORMAL} $MSG\n"
 }
 
 
@@ -353,7 +328,7 @@ function parseLogcatOutputLine() {
 # START ADBLOGCAT
 # ----------------------------------------------------------------------------------------------------------------------------
 function startADBLogcat() {
-    printf "Trying to connect to device\n"
+    printf "\nTrying to start logcat using: $ADB_LOGCAT_COMMAND\n"
     
     stdbuf -oL $ADB_LOGCAT_COMMAND |
         while IFS= read -r line
@@ -371,10 +346,23 @@ initTerm
 initColors
 checkRequirements
 
-if [ $# -eq 0 ]; then # if no parameter was supplied
-    startADBLogcat
-else # if parameters were supplied - check them
-    primaryParameter=$1
-    checkParameters
-fi
+# validate parameters
+printf "Checking parameters\n"
+for CURRENT_PARAMETER in "$@"
+do
+    case "$CURRENT_PARAMETER" in
+        "-h" | "--help")
+            printf " ${FG_GREEN}[   OK   ]${NORMAL}\tRequesting help\n"
+            displayHelp
+            ;;
+         "-f" | "--filter")
+            setLogCatLevel
+            ;;
+        *)
+            printf " ${FG_RED}[  FAIL  ]${NORMAL}\tUnsupported parameter '$CURRENT_PARAMETER'\n\n"
+            ;;
+    esac
+done
+printf " ${FG_GREEN}[   OK   ]${NORMAL}\tFinished checking parameters\n\n"
 
+startADBLogcat
