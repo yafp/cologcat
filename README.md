@@ -3,8 +3,10 @@ Colorized logcat output
 
 
 ## Output
-![ScreenShot](https://raw.githubusercontent.com/yafp/cologcat/master/images/screenshots/cologcat_example_output.png)
+![ScreenShot](https://raw.githubusercontent.com/yafp/cologcat/master/doc/screenshots/cologcat_example_output.png)
 
+## Live
+![ScreenShot](https://raw.githubusercontent.com/yafp/cologcat/master/doc/gif/cologcat_in_action.gif)
 
 ## Requirements
 * adb 
