@@ -14,7 +14,4 @@ Colorized logcat output
 
 ## Usage
 * Make cologcat.sh executable: `chmod +x cologcat.sh`
-* Start: `./cologcat.sh`
-
-
-
+* Start: `./cologcat.sh` or `./cologcat.sh -h` for some additional informations about existing parameters
