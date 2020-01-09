@@ -29,7 +29,7 @@ ADB_LOGCAT_COMMAND="adb logcat"
 # ----------------------------------------------------------------------------------------------------------------------------
 readonly PROJECT_NAME="CoLogCat"
 readonly PROJECT_URL="https://github.com/yafp/cologcat"
-readonly PROJECT_VERSION="20170124.01"
+readonly PROJECT_VERSION="1.0.0"
 
 
 
@@ -38,7 +38,7 @@ readonly PROJECT_VERSION="20170124.01"
 # ----------------------------------------------------------------------------------------------------------------------------
 function initTerm() {
     clear
-    
+
     # http://www.network-science.de/ascii/
     printf '\n'
     printf '_________        .____                 _________         __   \n'
@@ -77,13 +77,13 @@ function initColors() {
     # magenta   COLOR_MAGENTA     5     max,0,max
     # cyan      COLOR_CYAN        6     0,max,max
     # white     COLOR_WHITE       7     max,max,max
-    
-    
+
+
     # http://linuxcommand.org/lc3_adv_tput.php
     #
     # setaf     = Foreground
     # setab     = background
-    
+
     # Foreground
     #
     FG_BLACK=$(tput setaf 0)
@@ -99,8 +99,8 @@ function initColors() {
     #
     FG_LIME_YELLOW=$(tput setaf 190)
     FG_POWDER_BLUE=$(tput setaf 153)
-    
-    
+
+
     # Background
     #
     BG_BLACK=$(tput setab 0)
@@ -116,7 +116,7 @@ function initColors() {
     #
     BG_LIME_YELLOW=$(tput setab 190)
     BG_POWDER_BLUE=$(tput setab 153)
-    
+
     printf "${FG_GREEN}[   OK   ]${NORMAL}\tColors initialized\n\n"
 }
 
@@ -127,7 +127,7 @@ function initColors() {
 # ----------------------------------------------------------------------------------------------------------------------------
 function checkRequirements() {
     printf "Checking requirements\n"
-    
+
     # adb (required)
     if hash adb 2>/dev/null; then
             printf " ${FG_GREEN}[   OK   ]${NORMAL}\tFound ADB\n"
@@ -135,7 +135,7 @@ function checkRequirements() {
             printf " ${FG_RED}[  FAIL  ]${NORMAL}\tADB is missing\n"
             exit 1
     fi
-    
+
     # whiptail (optional)
     if hash whiptail 2>/dev/null; then # check for whiptail
         printf " ${FG_GREEN}[   OK   ]${NORMAL}\tFound whiptail\n\n"
@@ -151,7 +151,7 @@ function checkRequirements() {
 # ----------------------------------------------------------------------------------------------------------------------------
 function setLogCatLevel() {
     printf "\nConfiguring Logcat filter level\n"
-    
+
      if hash whiptail 2>/dev/null; then # check for whiptail
             OPTION=$(whiptail --title "Set LogCat Level" --backtitle "$PROJECT_NAME" --ok-button "Choose" --cancel-button "Exit (ESC)" --menu "Configure LogCat logging level" 16 70 8 \
         "[V]" "Verbose (most)" \
@@ -161,7 +161,7 @@ function setLogCatLevel() {
         "[E]" "Error" \
         "[F]" "Fatal" \
         "[S]" "Silent (none)"  3>&1 1>&2 2>&3)
-         
+
         EXITSTATUS=$?
         if [ $EXITSTATUS = 0 ]; then
             case $OPTION in
@@ -227,35 +227,35 @@ function colorizeOutput() {
             # verbose message type string
             MSG_TYPE_VERBOSE="[  Assert ]"
             ;;
-            
+
         [D]*)                                       #   D = Debug
             COLOR_FG_ONLY=${FG_BLUE}
             COLOR_FB_AND_BG=${BG_BLUE}${FG_BLACK}
             # verbose message type string
             MSG_TYPE_VERBOSE="[   Debug ]"
             ;;
-            
+
         [E])                                        #   E = Error
             COLOR_FG_ONLY=${FG_RED}
             COLOR_FB_AND_BG=${BG_RED}${FG_BLACK}
             # verbose message type string
             MSG_TYPE_VERBOSE="[   Error ]"
             ;;
-            
+
         [F])                                        #   F = Fatal
             COLOR_FG_ONLY=${FG_MAGENTA}
             COLOR_FB_AND_BG=${BG_MAGENTA}${FG_BLACK}
             # verbose message type string
             MSG_TYPE_VERBOSE="[   Fatal ]"
             ;;
-            
+
         [I])                                        #   I = Info
             COLOR_FG_ONLY=${FG_GREEN}
             COLOR_FB_AND_BG=${BG_GREEN}${FG_BLACK}
             # verbose message type string
             MSG_TYPE_VERBOSE="[    Info ]"
             ;;
-            
+
         [S])                                        #   S = Silent
             # colors
             COLOR_FG_ONLY=${FG_POWDER_BLUE}
@@ -263,21 +263,21 @@ function colorizeOutput() {
             # verbose message type string
             MSG_TYPE_VERBOSE="[  Silent ]"
             ;;
-            
+
         [V])                                        #   V = Verbose
             COLOR_FG_ONLY=${FG_CYAN}
             COLOR_FB_AND_BG=${BG_CYAN}${FG_BLACK}
             # verbose message type string
             MSG_TYPE_VERBOSE="[ Verbose ]"
             ;;
-            
+
         [W])                                        #   W = Warning
             COLOR_FG_ONLY=${FG_YELLOW}
             COLOR_FB_AND_BG=${BG_YELLOW}${FG_BLACK}
             # verbose message type string
             MSG_TYPE_VERBOSE="[ Warning ]"
             ;;
-            
+
         *)                                          #   Unknown
             COLOR_FG_ONLY=${NORMAL}
             COLOR_FB_AND_BG=${NORMAL}
@@ -294,11 +294,11 @@ function colorizeOutput() {
 # ----------------------------------------------------------------------------------------------------------------------------
 function parseLogcatOutputLine() {
     lineCols=( $line ) ;
-        
+
     # store column content to individual variables
     #
-    DATE="${lineCols[0]}" 
-    TIME="${lineCols[1]}" 
+    DATE="${lineCols[0]}"
+    TIME="${lineCols[1]}"
     PROCESS_ID="${lineCols[2]}"
     THREAD_ID="${lineCols[3]}"
     MSG_TYPE="${lineCols[4]}"
@@ -313,7 +313,7 @@ function parseLogcatOutputLine() {
     # original output of logcat
     #printf "$line\n"
     #
-    # Default order or 
+    # Default order or
     #printf "$DATE $TIME $PROCESS_ID $THREAD_ID $MSG_TYPE $MSG\n"
 
 
@@ -329,7 +329,7 @@ function parseLogcatOutputLine() {
 # ----------------------------------------------------------------------------------------------------------------------------
 function startADBLogcat() {
     printf "\nTrying to start logcat using: $ADB_LOGCAT_COMMAND\n"
-    
+
     stdbuf -oL $ADB_LOGCAT_COMMAND |
         while IFS= read -r line
         do
