@@ -10,15 +10,17 @@ cologcat colorizes the logcat output - simple as that ;)
 ![ScreenShot](https://raw.githubusercontent.com/yafp/cologcat/master/docs/gif/cologcat_in_action.gif)
 
 ## Requirements
-* adb
-* whiptail (optional)
+* ```adb```
+* ```whiptail``` (optional)
 
 ## Usage
 * Make cologcat.sh executable: `chmod +x cologcat.sh`
-* Start: `./cologcat.sh` or `./cologcat.sh -h` for some additional informations about existing parameters
+* Start: 
+  * `./cologcat.sh` or 
+  * `./cologcat.sh -h` for some additional informations about existing parameters
 
 ## Changelog
-Please see the [changlog](docs/CHANGELOG.md) for more details.
+Please see the [changelog](docs/CHANGELOG.md) for more details.
 
 ## download
 Download the latest release from [here](https://github.com/yafp/cologcat/releases).
