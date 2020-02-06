@@ -1,17 +1,35 @@
 # CoLogCat
-Colorized logcat output
+## changelog
+
+This project is using [Semantic Versioning](https://semver.org/).
+
+  ```
+  MAJOR.MINOR.PATCH
+  ```
+
+* ```MAJOR``` version (incompatible API changes etc)
+* ```MINOR``` version (adding functionality)
+* ```PATCH``` version (bug fixes)
 
 
-## Output
-![ScreenShot](https://raw.githubusercontent.com/yafp/cologcat/master/doc/screenshots/cologcat_example_output.png)
+The following categories are used:
 
-## Live
-![ScreenShot](https://raw.githubusercontent.com/yafp/cologcat/master/doc/gif/cologcat_in_action.gif)
+* ```Added```: for new features
+* ```Changed```: for changes in existing functionality.
+* ```Deprecated```: for soon-to-be removed features.
+* ```Removed```: for now removed features.
+* ```Fixed```: for any bug fixes.
+* ```Security```: in case of vulnerabilities.
 
-## Requirements
-* adb 
-* whiptail (optional)
 
-## Usage
-* Make cologcat.sh executable: `chmod +x cologcat.sh`
-* Start: `./cologcat.sh` or `./cologcat.sh -h` for some additional informations about existing parameters
+***
+
+### cologcat 1.0.0 (20200109)
+#### ```Added```
+* Initial version of the script
+* Support for colorized output
+* Offers a basic help via -h
+* Checks requirements on startup
+
+
+***
