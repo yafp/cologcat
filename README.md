@@ -1,8 +1,8 @@
 # CoLogCat
-Colorized logcat output
+Colorized ```logcat``` output
 
 ## About
-cologcat colorizes the logcat output - simple as that ;)
+**cologcat** is a simple shell script that colorizes the output of ```logcat``` - simple as that ;)
 
 ## Output
 ![ScreenShot](https://raw.githubusercontent.com/yafp/cologcat/master/docs/screenshots/cologcat_example_output.png)
@@ -14,7 +14,7 @@ cologcat colorizes the logcat output - simple as that ;)
 * ```whiptail``` (optional)
 
 ## Usage
-* Make cologcat.sh executable: `chmod +x cologcat.sh`
+* Make ```cologcat.sh``` executable: `chmod +x cologcat.sh`
 * Start: 
   * `./cologcat.sh` or 
   * `./cologcat.sh -h` for some additional informations about existing parameters
